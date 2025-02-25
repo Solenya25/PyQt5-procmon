@@ -1,9 +1,0 @@
-# Add/remove entries automatically by right-clicking notifications
-# Add full path to block specific processes
-# Example: C:\Program Files\MyApp\MyApp.exe
-# Add folder path to block all processes in a directory
-# Example: C:\Program Files\
-# Add process name for blanket blocking
-# Example: MyApp.exe
-# --------------------------------------------------------------------
-C:\windows
