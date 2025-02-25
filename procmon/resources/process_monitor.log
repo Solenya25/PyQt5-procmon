@@ -1,0 +1,30 @@
+2025-02-25 14:53:14,473 - CRITICAL - Error initializing ProcessMonitor: name 'process_name' is not defined
+Traceback (most recent call last):
+  File "E:\Reverse Engineer\Python Scripts\Claude monitor\procmon\monitoring\process_monitor.py", line 42, in __init__
+    logging.info(f"Using default icon for {process_name}")
+                                           ^^^^^^^^^^^^
+NameError: name 'process_name' is not defined
+
+2025-02-25 14:53:14,475 - CRITICAL - Error initializing SystemTrayApp: name 'process_name' is not defined
+Traceback (most recent call last):
+  File "E:\Reverse Engineer\Python Scripts\Claude monitor\procmon\system_tray.py", line 39, in __init__
+    self.monitor = ProcessMonitor(self.config, logging_enabled=self.config.logging_enabled)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\Reverse Engineer\Python Scripts\Claude monitor\procmon\monitoring\process_monitor.py", line 42, in __init__
+    logging.info(f"Using default icon for {process_name}")
+                                           ^^^^^^^^^^^^
+NameError: name 'process_name' is not defined
+
+2025-02-25 14:53:14,477 - CRITICAL - Critical error: name 'process_name' is not defined
+Traceback (most recent call last):
+  File "E:\Reverse Engineer\Python Scripts\Claude monitor\procmon\procmon.py", line 26, in <module>
+    window = SystemTrayApp()
+             ^^^^^^^^^^^^^^^
+  File "E:\Reverse Engineer\Python Scripts\Claude monitor\procmon\system_tray.py", line 39, in __init__
+    self.monitor = ProcessMonitor(self.config, logging_enabled=self.config.logging_enabled)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\Reverse Engineer\Python Scripts\Claude monitor\procmon\monitoring\process_monitor.py", line 42, in __init__
+    logging.info(f"Using default icon for {process_name}")
+                                           ^^^^^^^^^^^^
+NameError: name 'process_name' is not defined
+

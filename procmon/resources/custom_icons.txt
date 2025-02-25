@@ -1,0 +1,5 @@
+# Format: "Path", "Icon name"
+# Format: "Process name", "Icon name"
+# Example: "C:\Program Files\MyApp\example.exe", "example_icon"
+# Example: "example.exe", "example_icon"
+# --------------------------------------------------------------------
