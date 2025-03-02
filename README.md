@@ -49,8 +49,8 @@ A Windows system tray application that monitors new processes as they start, dis
 
 1. Clone this repository:
 ```bash
-git clone https://github.com/Solenya25/PyQt5-procmon.git
-cd procmon
+git clone https://github.com/Solenya25/PyQt5-procmon/procmon.git
+cd PyQt5-procmon
 ```
 
 2. Create a virtual environment (recommended):
@@ -66,6 +66,7 @@ pip install PyQt5 psutil pywin32 Pillow
 
 4. Run the application:
 ```bash
+cd procmon
 python procmon.py
 ```
 
