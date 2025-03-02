@@ -27,7 +27,9 @@ A Windows system tray application that monitors new processes as they start, dis
 
 ### Main Notification
 ![Notification - Collapsed](screenshots/notification_collapsed.png)
+
 ![Notification - Collapsed Hovered](screenshots/notification_collapsed_hovered.png)
+
 ![Notification - Expanded](screenshots/notification_expanded.png)
 
 ### Context Menu
@@ -35,7 +37,9 @@ A Windows system tray application that monitors new processes as they start, dis
 
 ### Settings Dialog
 ![Settings - Appearance](screenshots/settings_appearance.png)
+
 ![Settings - Behavior](screenshots/settings_behavior.png)
+
 ![Settings - Status](screenshots/settings_status.png)
 
 ### System Tray Menu
