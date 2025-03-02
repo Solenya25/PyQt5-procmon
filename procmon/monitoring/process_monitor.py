@@ -22,7 +22,8 @@ class ProcessMonitor(QThread):
             self.icon_cache = IconCache()
             self.poll_interval = 0.5
             self.logging_enabled = logging_enabled
-            self.block_list = []
+            self.block_list = []  # Initialize block list
+            self.allow_list = []  # Initialize allow list
             self.blocking_enabled = True
             self.config = config
 
@@ -157,6 +158,97 @@ class ProcessMonitor(QThread):
         except Exception as e:
             logging.error(f"Icon extraction failed for {process_name}: {e}")
             return self.default_icon
+    
+    def check_process_block_status(self, path, block_list, allow_list):
+        """
+        Determine if a process should be blocked or allowed.
+    
+        This is a fallback method used when the parent's unified function is not available.
+        Follows the same rule priority as defined in Rules.txt.
+    
+        Args:
+            path (str): Process executable path
+            block_list (list): Block list entries
+            allow_list (list): Allow list entries
+    
+        Returns:
+            tuple: (is_blocked, is_allowed)
+        """
+        # Normalize paths for comparison
+        path_lower = path.lower().replace("/", "\\").rstrip("\\")
+        process_name_lower = os.path.basename(path_lower)
+    
+        block_list_lower = [entry.lower().replace("/", "\\").rstrip("\\") for entry in block_list]
+        allow_list_lower = [entry.lower().replace("/", "\\").rstrip("\\") for entry in allow_list]
+    
+        # 1. Check exact path (highest priority)
+        # If path is in both lists, allow overrides block
+        if path_lower in allow_list_lower and path_lower in block_list_lower:
+            return False, True  # Not blocked, allowed
+        
+        # If path is in allow list, it's allowed
+        if path_lower in allow_list_lower:
+            return False, True  # Not blocked, allowed
+    
+        # If path is in block list, it's blocked
+        if path_lower in block_list_lower:
+            return True, False  # Blocked, not allowed
+    
+        # 2. Check process name (second priority)
+        # If name is in both lists, allow overrides block
+        if process_name_lower in allow_list_lower and process_name_lower in block_list_lower:
+            return False, True  # Not blocked, allowed
+        
+        # If name is in allow list, it's allowed
+        if process_name_lower in allow_list_lower:
+            return False, True  # Not blocked, allowed
+    
+        # If name is in block list, it's blocked
+        if process_name_lower in block_list_lower:
+            return True, False  # Blocked, not allowed
+    
+        # 3. Check directory hierarchy (third priority)
+        # Collect all directory rules (both allow and block)
+        allow_dir_matches = []
+        block_dir_matches = []
+    
+        # Gather allow list directory matches
+        for entry in allow_list_lower:
+            if entry.endswith("\\") and path_lower.startswith(entry):
+                depth = entry.count("\\")
+                allow_dir_matches.append((depth, entry))
+            
+        # Gather block list directory matches        
+        for entry in block_list_lower:
+            if entry.endswith("\\") and path_lower.startswith(entry):
+                depth = entry.count("\\")
+                block_dir_matches.append((depth, entry))
+    
+        # Find deepest directory match in each list
+        deepest_allow = max(allow_dir_matches, key=lambda x: x[0], default=None)
+        deepest_block = max(block_dir_matches, key=lambda x: x[0], default=None)
+    
+        # If we have matches in both lists, compare their depths
+        if deepest_allow and deepest_block:
+            if deepest_allow[0] >= deepest_block[0]:
+                # Allow list has equal or deeper match - it wins
+                return False, True  # Not blocked, allowed
+            else:
+                # Block list has deeper match - it wins
+                return True, False  # Blocked, not allowed
+        elif deepest_allow:
+            # Only have allow match
+            return False, True  # Not blocked, allowed
+        elif deepest_block:
+            # Only have block match
+            return True, False  # Blocked, not allowed
+    
+        # 4. Check for "all" keyword in block list (lowest priority)
+        if "all" in block_list_lower:
+            return True, False  # Blocked, not allowed
+    
+        # No rules matched
+        return False, False  # Not blocked, not allowed (default)
 
     def run(self):
         try:
@@ -170,66 +262,59 @@ class ProcessMonitor(QThread):
 
         while self.running:
             try:
-                # Use psutil's process_iter with caching to reduce overhead
                 current_processes = set(p.pid for p in psutil.process_iter(["pid"]))
                 new_pids = current_processes - self.previous_processes
 
-                # Process new PIDs
                 for pid in new_pids:
                     try:
                         process = psutil.Process(pid)
                         if process.is_running():
                             exe_path_original = process.exe()  # Keep correct capitalization for display
-                            exe_path_lower = exe_path_original.lower().replace("/", "\\").rstrip("\\")  # Normalize slashes
                             process_name_original = process.name()  # Correct capitalization
-                            process_name_lower = process_name_original.lower()  # Lowercase for matching
 
-                            # Check if blocking is enabled
+                            # Get the parent app reference to use the unified function
+                            parent_app = getattr(self.config, 'parent_app', None)
+                        
+                            # Determine block/allow status
+                            should_block = False
+                            rule_type = None
+                        
                             if self.blocking_enabled:
-                                block_list_lower = [
-                                    entry.lower().replace("/", "\\").rstrip("\\")
-                                    for entry in self.block_list
-                                ]
+                                if parent_app and hasattr(parent_app, 'determine_process_status'):
+                                    # Use parent's unified determination function
+                                    final_status, rule_type, _ = parent_app.determine_process_status(
+                                        exe_path_original, self.block_list, self.allow_list
+                                    )
+                                    should_block = (final_status is False)
+                                else:
+                                    # Fallback: use local function to determine status
+                                    is_blocked, is_allowed = self.check_process_block_status(
+                                        exe_path_original, self.block_list, self.allow_list
+                                    )
+                                    should_block = is_blocked and not is_allowed
+                                    rule_type = "local_determination"
 
-                                # Initialize a flag to track if the process is blocked
-                                is_blocked = False
+                            # Skip notification if blocked AND blocking is enabled
+                            if should_block and self.blocking_enabled:
+                                logging.info(f"Skipping notification for blocked process: {exe_path_original} (rule: {rule_type})")
+                                continue
 
-                                # 1. Block by exact file path
-                                if exe_path_lower in block_list_lower:
-                                    logging.info(f"Blocked process by full path: {exe_path_original}")
-                                    is_blocked = True
-
-                                # 2. Block by process name
-                                if process_name_lower in block_list_lower:
-                                    logging.info(f"Blocked process by name: {process_name_original}")
-                                    is_blocked = True
-
-                                # 3. Block by directory (check if exe path starts with any blocked directory)
-                                for blocked_entry in block_list_lower:
-                                    if exe_path_lower.startswith(blocked_entry + "\\"):  # Ensure it's a directory match
-                                        logging.info(f"Blocked process in blocked directory: {exe_path_original}")
-                                        is_blocked = True
-                                        break  # No need to check further if already blocked
-
-                                # Skip the process if it is blocked
-                                if is_blocked:
-                                    continue
-
+                            # Rest of process notification code only runs if not blocked
                             # Check if the process is elevated
                             is_elevated = False
                             try:
                                 is_elevated = is_process_elevated(pid)
                             except Exception as e:
                                 logging.error(f"Error checking if process is elevated: {e}")
-                            
+
                             # Get the icon
                             icon = self.get_process_icon(process)
-                            
+
                             # Send notification with elevation status
                             self.process_started.emit(
-                                process_name_original, 
-                                exe_path_original, 
-                                str(pid), 
+                                process_name_original,
+                                exe_path_original,
+                                str(pid),
                                 icon,
                                 is_elevated
                             )
@@ -243,9 +328,10 @@ class ProcessMonitor(QThread):
                 # Update the previous process list
                 self.previous_processes = current_processes
 
-                # Adjust polling interval dynamically based on system load
+                # Sleep for the poll interval
                 time.sleep(self.poll_interval)
 
             except Exception as e:
                 logging.error(f"Error in process monitoring: {e}")
                 time.sleep(1)  # Use a longer sleep on errors to avoid spamming
+

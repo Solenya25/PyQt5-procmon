@@ -34,6 +34,21 @@ def create_resource_files():
                 "# --------------------------------------------------------------------\n"
             )
 
+    # Create allow_list.txt if it doesn't exist
+    allow_list_path = os.path.join(resources_path, "allow_list.txt")
+    if not os.path.exists(allow_list_path):
+        with open(allow_list_path, "w") as f:
+            f.write(
+                "# Add entries to allow specific processes (overrides block list)\n"
+                "# Add full path to allow specific processes\n"
+                "# Example: C:\\Program Files\\MyApp\\MyApp.exe\n"
+                "# Add folder path to allow all processes in a directory\n"
+                "# Example: C:\\Program Files\\\n"
+                "# Add process name for blanket allowing\n"
+                "# Example: MyApp.exe\n"
+                "# --------------------------------------------------------------------\n"
+            )
+
     # Create custom_icons.txt if it doesn't exist
     custom_icons_path = os.path.join(resources_path, "custom_icons.txt")
     if not os.path.exists(custom_icons_path):
