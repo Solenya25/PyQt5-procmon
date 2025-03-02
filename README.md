@@ -23,11 +23,29 @@ A Windows system tray application that monitors new processes as they start, dis
 - pywin32 (win32api, win32con, etc.)
 - Pillow (PIL)
 
+## Screenshots
+
+### Main Notification
+![Notification - Collapsed](screenshots/notification_collapsed.png)
+![Notification - Collapsed Hovered](screenshots/notification_collapsed_hovered.png)
+![Notification - Expanded](screenshots/notification_expanded.png)
+
+### Context Menu
+![Context Menu](screenshots/context_menu.png)
+
+### Settings Dialog
+![Settings - Appearance](screenshots/settings_appearance.png)
+![Settings - Behavior](screenshots/settings_behavior.png)
+![Settings - Status](screenshots/settings_status.png)
+
+### System Tray Menu
+![System Tray Menu](screenshots/tray_menu.png)
+
 ## Installation
 
 1. Clone this repository:
 ```bash
-git clone https://github.com/username/procmon.git
+git clone https://github.com/Solenya25/PyQt5-procmon.git
 cd procmon
 ```
 
@@ -177,24 +195,6 @@ ALL  # Special rule to hide notifications for all processes (block list only)
 "C:\Program Files\Example\example.exe", "example_icon"
 "example.exe", "example_icon"
 ```
-
-## Screenshots
-
-### Main Notification
-![Notification - Collapsed](screenshots/notification_collapsed.png)
-![Notification - Collapsed Hovered](screenshots/notification_collapsed_hovered.png)
-![Notification - Expanded](screenshots/notification_expanded.png)
-
-### Context Menu
-![Context Menu](screenshots/context_menu.png)
-
-### Settings Dialog
-![Settings - Appearance](screenshots/settings_appearance.png)
-![Settings - Behavior](screenshots/settings_behavior.png)
-![Settings - Status](screenshots/settings_status.png)
-
-### System Tray Menu
-![System Tray Menu](screenshots/tray_menu.png)
 
 ## Troubleshooting
 
